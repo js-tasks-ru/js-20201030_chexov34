@@ -16,4 +16,10 @@ export function sortStrings(arr, param = 'asc') {
   })
 }
 
+/**
+ * compare - compares two strings str1 and str2 in English or Russian
+ * @param {string} str1 - first string for compare
+ * @param {string} str2 - seconds string for compare
+ * @returns {number}
+ */
 const compare = (str1, str2) => str1.localeCompare(str2, ['ru', 'en'], {caseFirst: "upper"})
