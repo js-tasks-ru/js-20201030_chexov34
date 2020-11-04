@@ -8,10 +8,12 @@ export function sortStrings(arr, param = 'asc') {
   return [...arr].sort((a, b) => {
     switch (param) {
         case 'desc':
-          return b.localeCompare(a, ['ru', 'en'], {caseFirst: "upper"})            
+          return compare(b, a)            
         case 'asc':
         default:
-          return a.localeCompare(b, ['ru', 'en'], {caseFirst: "upper"})
+          return compare(a, b)
     }
   })
 }
+
+const compare = (str1, str2) => str1.localeCompare(str2, ['ru', 'en'], {caseFirst: "upper"})
