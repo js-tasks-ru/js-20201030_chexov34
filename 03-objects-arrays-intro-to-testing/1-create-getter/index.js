@@ -11,7 +11,7 @@ export function createGetter(path) {
       if (Object.keys(copyObj).includes(k)) {
         copyObj = copyObj[k]
       } else {
-        return undefined
+        return
       }
     }
     return copyObj
