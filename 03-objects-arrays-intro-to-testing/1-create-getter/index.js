@@ -6,14 +6,11 @@
 export function createGetter(path) {
   const arrParams = path.split('.')
   return obj => {
-    let copyObj = {...obj}
-    for (let k of arrParams) {
-      if (Object.keys(copyObj).includes(k)) {
-        copyObj = copyObj[k]
-      } else {
-        return
+    return arrParams.reduce((newObj, value) => {
+      if (!!newObj) {
+        return newObj[value]
       }
-    }
-    return copyObj
+      return newObj 
+    }, obj)
   }
 }
