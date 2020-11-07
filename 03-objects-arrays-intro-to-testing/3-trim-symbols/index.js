@@ -12,15 +12,18 @@ export function trimSymbols(string, size) {
   if (!size) return string
 
   for (let index = 0; index < string.length; index++) {
+    
     if (index === 0) {
       newStr += string[index]
       continue
     }
+
     if (string[index] === string[index -1]) {
       ++count
     } else {
       count = 0
     }
+
     if (count < size) {
       newStr += string[index]
     }
