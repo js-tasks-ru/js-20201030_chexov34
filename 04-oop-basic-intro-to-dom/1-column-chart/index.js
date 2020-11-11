@@ -16,7 +16,7 @@ export default class ColumnChart {
   }
 
   isLoading() {
-    return !!this.data.length;
+    return !this.data || !this.data.length;
   }
 
   renderTitle() {
@@ -57,7 +57,7 @@ export default class ColumnChart {
   render() {
     const element = document.createElement("div");
     const className = `column-chart ${
-      this.isLoading() ? "" : "column-chart_loading"
+      this.isLoading() ? "column-chart_loading" : ""
     }`;
 
     element.innerHTML = `
