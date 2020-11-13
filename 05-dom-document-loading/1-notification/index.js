@@ -1,10 +1,13 @@
 export default class NotificationMessage {
+  /** @type Node */
   static _element;
+  /** @type number */
   static _timer;
-  constructor(message, { duration = 1000, type = "success" } = {}) {
+  constructor(message, { duration = 1000, type = "success", header = 'Success'} = {}) {
     this.duration = duration;
     this.type = type;
     this.message = message;
+    this.header = header;
     this.render();
   }
 
@@ -19,7 +22,7 @@ export default class NotificationMessage {
     <div class="notification ${this.type}" style="--value:${this.duration / 1000}s">
     <div class="timer"></div>
     <div class="inner-wrapper">
-      <div class="notification-header">success</div>
+      <div class="notification-header">${this.header}</div>
       <div class="notification-body">
         ${this.message}
       </div>
