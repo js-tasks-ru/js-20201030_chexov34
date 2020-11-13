@@ -18,7 +18,7 @@ export default class NotificationMessage {
   }
 
   get template() {
-    return NotificationMessage.createElementFromString(`
+    return `
     <div class="notification ${this.type}" style="--value:${this.duration / 1000}s">
     <div class="timer"></div>
     <div class="inner-wrapper">
@@ -28,7 +28,7 @@ export default class NotificationMessage {
       </div>
     </div>
   </div>
-  `);
+  `;
   }
 
   get element() {
@@ -41,7 +41,7 @@ export default class NotificationMessage {
 
   render() {
     this.destroy();
-    this.element = this.template;
+    this.element = NotificationMessage.createElementFromString(this.template);
   }
 
   show(root = null) {
