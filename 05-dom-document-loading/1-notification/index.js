@@ -59,6 +59,7 @@ export default class NotificationMessage {
   destroy() {
     this.remove();
     clearTimeout(NotificationMessage._timer);
+    this.element = null; // <-- в тестах не хватает проверки на null, т.е. если remove, то в памяти всё равно есть ссылка
   }
 
   remove() {
