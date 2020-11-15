@@ -1,10 +1,12 @@
 export default class SortableTable {
   /**@type Node */
   element;
-  /**@type Node */
-  headerNode;
-  /**@type Node */
-  bodyNode;
+  subElements = {
+    body: null,
+    header: null,
+    loading: null,
+    emptyPlaceholder: null,
+  };
 
   constructor(header = [], { data = [] }) {
     this.header = header;
@@ -12,18 +14,52 @@ export default class SortableTable {
     this.render();
   }
 
-  compareString(str1, str2) {
-    return str1.localeCompare(str2, ['ru', 'en'], {caseFirst: "upper"})
+  sortStrings(arr, key, param = "asc") {
+    return [...arr].sort((a, b) => {
+      switch (param) {
+        case "desc":
+          return this.compare(b[key], a[key]);
+        case "asc":
+        default:
+          return this.compare(a[key], b[key]);
+      }
+    });
   }
 
-  compareNumber(a, b) {
-    return a - b;
+  sortNumbers(arr, key, param = "asc") {
+    return [...arr].sort((a, b) => {
+      switch (param) {
+        case "desc":
+          return b[key] - a[key];
+        case "asc":
+        default:
+          return a[key] - b[key];
+      }
+    });
+  }
+
+  compare(str1, str2) {
+    return str1.localeCompare(str2, ["ru", "en"], { caseFirst: "upper" });
+  }
+
+  get loadingTemplate() {
+    return `
+    <div data-element="loading" class="loading-line sortable-table__loading-line"></div>
+    `;
   }
 
   static createElementFromString(string) {
     const div = document.createElement("div");
     div.innerHTML = string.trim();
     return div.firstChild;
+  }
+
+  getClassString(arr) {
+    // пытался что-то придумать, как в vue [{'class': <boolean>, 'class',...] :)
+    return arr
+      .filter((c) => typeof c === "string" || Object.values(c).includes(true))
+      .map((c) => [...new Set(Object.keys(c))])
+      .join(" ");
   }
 
   get headerData() {
@@ -34,14 +70,9 @@ export default class SortableTable {
               <span class="sort-arrow"></span>
             </span>`
           : "";
-        const className = [
-          {'sortable-table__cell': Boolean(item.sortable)}
-        ]
-          .filter(c => Object.values(c).includes(true))
-          .map(c => [...new Set(Object.keys(c))])
         return `
       <div
-        class="${className.join(' ')}"
+        class="${this.getClassString(["sortable-table__cell"])}"
         data-id="${item.id}"
         data-sortable="${item.sortable}"
       >
@@ -53,27 +84,46 @@ export default class SortableTable {
       .join("");
   }
 
+  get emptyPlaceholderTemplate() {
+    return `
+    <div data-element="emptyPlaceholder" class="sortable-table__empty-placeholder">
+    <div>
+      <p>No products satisfies your filter criteria</p>
+      <button type="button" class="button-primary-outline">Reset all filters</button>
+    </div>
+  </div>
+    `;
+  }
+
   headerDescription() {
-    return this.header.map(h => {
+    return this.header.map((h) => {
       return {
         id: h.id,
-        template: h.template
+        template: h.template,
+      };
+    });
+  }
+
+  getRow(headerDescription, rowData) {
+    return headerDescription.map((header) => {
+      if (header.template) {
+        return header.template(rowData[header.id]);
       }
-    })
+      return `<div class="sortable-table__cell">${rowData[header.id]}</div>`;
+    });
   }
 
   get bodyData() {
-    const header = this.headerDescription()
-    return this.data.map(item => {
-      const innerData = header
-        .map(h => `${h.template ? h.template(item[h.id]) : '<div class="sortable-table__cell">' + item[h.id] + '</div>'}`)
-        .join('');
-      return `
+    const headerDescription = this.headerDescription();
+    return this.data
+      .map(
+        (item) => `
       <a href="/products/${item.id}" class="sortable-table__row">
-        ${innerData}
+        ${this.getRow(headerDescription, item).join("")}
       </a>
       `
-    }).join('')
+      )
+      .join("");
   }
 
   get headerTemplate() {
@@ -84,7 +134,7 @@ export default class SortableTable {
   }
 
   get bodyTemplate() {
-    return `<div data-element="body" class="sortable-table__body">${this.bodyData}</div>`
+    return `<div data-element="body" class="sortable-table__body">${this.bodyData}</div>`;
   }
 
   get template() {
@@ -94,18 +144,26 @@ export default class SortableTable {
 
       </div>
     </div>
-    `
+    `;
   }
 
   render() {
-    this.element = SortableTable.createElementFromString(this.template)
-    const table = this.element.querySelector('.sortable-table')
-    if (table) {
-      this.headerNode = SortableTable.createElementFromString(this.headerTemplate);
-      this.bodyNode = SortableTable.createElementFromString(this.bodyTemplate);
-      table.append(this.headerNode);
-      table.append(this.bodyNode);
-    }
+    this.element = SortableTable.createElementFromString(this.template);
+
+    this.subElements.header = SortableTable.createElementFromString(
+      this.headerTemplate
+    );
+    this.subElements.body = SortableTable.createElementFromString(
+      this.bodyTemplate
+    );
+    this.subElements.loading = SortableTable.createElementFromString(
+      this.loadingTemplate
+    );
+    this.subElements.emptyPlaceholder = SortableTable.createElementFromString(
+      this.emptyPlaceholderTemplate
+    );
+    this.element.append(this.subElements.header);
+    this.element.append(this.subElements.body);
   }
 
   destroy() {
@@ -116,30 +174,41 @@ export default class SortableTable {
     if (this.element) {
       this.element.remove();
     }
-    this.bodyNode = null;
     this.element = null;
-    this.headerNode = null;
+    this.subElements = {
+      body: null,
+      header: null,
+      loading: null,
+      emptyPlaceholder: null,
+    };
   }
 
-  sort(field, type = 'asc') {
-    const header = this.header.find(h => h.id === field)
-    if(header && header.sortable) {
-      const type = header.sortType
-      this.data = [...this.data].sort((obj1, obj2) => {
-        const v1 = obj1[field]
-        const v2 = obj2[field]
-        switch (type) {
-          case 'string':
-            return this.compareString(v1, v2)
-          case 'number':
-            return this.compareNumber(v1, v1)
-          default:
-            return 0
-        }
-      })
+  getSortFunction(type) {
+    switch (type) {
+      case "string":
+        return this.sortStrings;
+      case "number":
+        return this.sortNumbers;
     }
-
   }
 
+  clearBody() {
+    this.subElements.body.remove();
+    this.subElements.body = null;
+  }
 
+  sort(field, type = "asc") {
+    const header = this.header.find((h) => h.id === field);
+    if (header && header.sortable) {
+      const { sortType } = header;
+      const f = this.getSortFunction(sortType);
+      this.data = f.call(this, this.data, field, type);
+      this.clearBody();
+      this.subElements.body = SortableTable.createElementFromString(
+        this.bodyTemplate
+      );
+
+      this.element.append(this.subElements.body);
+    }
+  }
 }
