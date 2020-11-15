@@ -156,7 +156,9 @@ export default class SortableTable {
 
   render() {
     this.element = SortableTable.createElementFromString(this.template);
-    this.subElements.table = SortableTable.createElementFromString(this.tableTemplate);
+    this.subElements.table = SortableTable.createElementFromString(
+      this.tableTemplate
+    );
     this.subElements.header = SortableTable.createElementFromString(
       this.headerTemplate
     );
@@ -169,7 +171,7 @@ export default class SortableTable {
     this.subElements.emptyPlaceholder = SortableTable.createElementFromString(
       this.emptyPlaceholderTemplate
     );
-    this.element.append(this.table);
+    this.element.append(this.subElements.table);
     this.subElements.table.append(this.subElements.header);
     this.subElements.table.append(this.subElements.body);
   }
