@@ -219,7 +219,7 @@ export default class SortableTable {
         this.bodyTemplate
       );
 
-      this.element.append(this.subElements.body);
+      this.subElements.table.append(this.subElements.body);
     }
   }
 }
