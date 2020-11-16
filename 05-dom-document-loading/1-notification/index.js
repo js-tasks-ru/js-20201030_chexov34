@@ -46,7 +46,7 @@ export default class NotificationMessage {
 
   render() {
     this.destroy();
-    this.element = createElementFromString(this.template);
+    NotificationMessage.element = createElementFromString(this.template);
   }
 
   show(root = document.body) {
@@ -60,12 +60,12 @@ export default class NotificationMessage {
   destroy() {
     this.remove();
     clearTimeout(NotificationMessage.#_timer);
-    this.element = null; // <-- в тестах не хватает проверки на null, т.е. если remove, то в памяти всё равно есть ссылка
+    NotificationMessage.element = null; // <-- в тестах не хватает проверки на null, т.е. если remove, то в памяти всё равно есть ссылка
   }
 
   remove() {
-    if (this.element) {
-      this.element.remove();
+    if (NotificationMessage.element) {
+      NotificationMessage.element.remove();
     }
   }
 }
