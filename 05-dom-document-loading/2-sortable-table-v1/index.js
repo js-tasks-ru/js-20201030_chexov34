@@ -7,7 +7,6 @@ function createElementFromString(string) {
 export default class SortableTable {
   /**@type Node */
   element;
-  /** @type Map */
   subElements = null;
 
   constructor(header = [], { data = [] }) {
@@ -135,7 +134,9 @@ export default class SortableTable {
             return this.compare(a[field], b[field], sortType);
         }
       });
-      this.subElements.body.innerHTML = this.bodyData;
+      if (this.subElements.body) {
+        this.subElements.body.innerHTML = this.bodyData;
+      }
     }
   }
 
