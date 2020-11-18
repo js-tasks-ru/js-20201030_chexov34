@@ -1,9 +1,18 @@
+function createElementFromString(string) {
+  const div = document.createElement("div");
+  div.innerHTML = string.trim();
+  return div.firstElementChild;
+}
+
 export default class NotificationMessage {
   /** @type Node */
-  static _element;
-  /** @type number */
-  static _timer;
-  constructor(message, { duration = 1000, type = "success", header = 'Success'} = {}) {
+  static element;
+  /** @type Number */
+  static #_timer;
+  constructor(
+    message,
+    { duration = 1000, type = "success", header = "Success" } = {}
+  ) {
     this.duration = duration;
     this.type = type;
     this.message = message;
@@ -11,15 +20,11 @@ export default class NotificationMessage {
     this.render();
   }
 
-  static createElementFromString(string) {
-    const div = document.createElement("div");
-    div.innerHTML = string.trim();
-    return div.firstChild;
-  }
-
   get template() {
     return `
-    <div class="notification ${this.type}" style="--value:${this.duration / 1000}s">
+    <div class="notification ${this.type}" style="--value:${
+      this.duration / 1000
+    }s">
     <div class="timer"></div>
     <div class="inner-wrapper">
       <div class="notification-header">${this.header}</div>
@@ -32,25 +37,21 @@ export default class NotificationMessage {
   }
 
   get element() {
-    return NotificationMessage._element;
+    return NotificationMessage.element;
   }
 
   set element(element) {
-    NotificationMessage._element = element;
+    NotificationMessage.element = element;
   }
 
   render() {
     this.destroy();
-    this.element = NotificationMessage.createElementFromString(this.template);
+    NotificationMessage.element = createElementFromString(this.template);
   }
 
-  show(root = null) {
-    if (root) {
-      root.append(this.element);
-    } else {
-      document.body.append(this.element);
-    }
-    NotificationMessage._timer = setTimeout(
+  show(root = document.body) {
+    root.append(this.element);
+    NotificationMessage.#_timer = setTimeout(
       () => this.destroy(),
       this.duration
     );
@@ -58,13 +59,13 @@ export default class NotificationMessage {
 
   destroy() {
     this.remove();
-    clearTimeout(NotificationMessage._timer);
-    this.element = null; // <-- в тестах не хватает проверки на null, т.е. если remove, то в памяти всё равно есть ссылка
+    clearTimeout(NotificationMessage.#_timer);
+    NotificationMessage.element = null; // <-- в тестах не хватает проверки на null, т.е. если remove, то в памяти всё равно есть ссылка
   }
 
   remove() {
-    if (this.element) {
-      this.element.remove();
+    if (NotificationMessage.element) {
+      NotificationMessage.element.remove();
     }
   }
 }

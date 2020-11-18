@@ -1,10 +1,13 @@
+function createElementFromString(string) {
+  const div = document.createElement("div");
+  div.innerHTML = string.trim();
+  return div.firstElementChild;
+}
+
 export default class SortableTable {
   /**@type Node */
   element;
-  /**@type Node */
-  headerNode;
-  /**@type Node */
-  bodyNode;
+  subElements = null;
 
   constructor(header = [], { data = [] }) {
     this.header = header;
@@ -12,36 +15,21 @@ export default class SortableTable {
     this.render();
   }
 
-  compareString(str1, str2) {
-    return str1.localeCompare(str2, ['ru', 'en'], {caseFirst: "upper"})
-  }
-
-  compareNumber(a, b) {
-    return a - b;
-  }
-
-  static createElementFromString(string) {
-    const div = document.createElement("div");
-    div.innerHTML = string.trim();
-    return div.firstChild;
+  get sortableArrow() {
+    return `
+    <span data-element="arrow" class="sortable-table__sort-arrow">
+              <span class="sort-arrow"></span>
+            </span>
+    `;
   }
 
   get headerData() {
     return this.header
       .map((item) => {
-        const sortable = item.sortable
-          ? `<span data-element="arrow" class="sortable-table__sort-arrow">
-              <span class="sort-arrow"></span>
-            </span>`
-          : "";
-        const className = [
-          {'sortable-table__cell': Boolean(item.sortable)}
-        ]
-          .filter(c => Object.values(c).includes(true))
-          .map(c => [...new Set(Object.keys(c))])
+        const sortable = item.sortable ? this.sortableArrow : "";
         return `
       <div
-        class="${className.join(' ')}"
+        class="sortable-table__cell"
         data-id="${item.id}"
         data-sortable="${item.sortable}"
       >
@@ -54,58 +42,71 @@ export default class SortableTable {
   }
 
   headerDescription() {
-    return this.header.map(h => {
+    return this.header.map((description) => {
       return {
-        id: h.id,
-        template: h.template
+        id: description.id,
+        template: description.template,
+      };
+    });
+  }
+
+  getRow(headerDescription, rowData) {
+    return headerDescription.map((header) => {
+      if (header.template) {
+        return header.template(rowData[header.id]);
       }
-    })
+      return `<div class="sortable-table__cell">${rowData[header.id]}</div>`;
+    });
   }
 
   get bodyData() {
-    const header = this.headerDescription()
-    return this.data.map(item => {
-      const innerData = header
-        .map(h => `${h.template ? h.template(item[h.id]) : '<div class="sortable-table__cell">' + item[h.id] + '</div>'}`)
-        .join('');
-      return `
+    const headerDescription = this.headerDescription();
+    return this.data
+      .map(
+        (item) => `
       <a href="/products/${item.id}" class="sortable-table__row">
-        ${innerData}
+        ${this.getRow(headerDescription, item).join("")}
       </a>
       `
-    }).join('')
-  }
-
-  get headerTemplate() {
-    return `
-    <div data-element="header" class="sortable-table__header sortable-table__row">
-      ${this.headerData}
-    </div>`;
-  }
-
-  get bodyTemplate() {
-    return `<div data-element="body" class="sortable-table__body">${this.bodyData}</div>`
+      )
+      .join("");
   }
 
   get template() {
     return `
     <div data-element="productsContainer" class="products-list__container">
       <div class="sortable-table">
-
+        <div data-element="header" class="sortable-table__header sortable-table__row">
+        ${this.headerData}
+        </div>
+        <div data-element="body" class="sortable-table__body">
+        ${this.bodyData}
+        </div>
+        <div data-element="loading" class="loading-line sortable-table__loading-line"></div>
+        <div data-element="emptyPlaceholder" class="sortable-table__empty-placeholder">
+          <div>
+            <p>No products satisfies your filter criteria</p>
+            <button type="button" class="button-primary-outline">Reset all filters</button>
+          </div>
+        </div>
       </div>
     </div>
-    `
+    `;
   }
 
   render() {
-    this.element = SortableTable.createElementFromString(this.template)
-    const table = this.element.querySelector('.sortable-table')
-    if (table) {
-      this.headerNode = SortableTable.createElementFromString(this.headerTemplate);
-      this.bodyNode = SortableTable.createElementFromString(this.bodyTemplate);
-      table.append(this.headerNode);
-      table.append(this.bodyNode);
-    }
+    this.element = createElementFromString(this.template);
+    this.subElements = this.getSubElements(this.element);
+  }
+
+  getSubElements(element) {
+    const elements = element.querySelectorAll("[data-element]");
+
+    return [...elements].reduce((accum, subElement) => {
+      accum[subElement.dataset.element] = subElement;
+
+      return accum;
+    }, {});
   }
 
   destroy() {
@@ -116,30 +117,38 @@ export default class SortableTable {
     if (this.element) {
       this.element.remove();
     }
-    this.bodyNode = null;
     this.element = null;
-    this.headerNode = null;
+    this.subElements = null;
   }
 
-  sort(field, type = 'asc') {
-    const header = this.header.find(h => h.id === field)
-    if(header && header.sortable) {
-      const type = header.sortType
-      this.data = [...this.data].sort((obj1, obj2) => {
-        const v1 = obj1[field]
-        const v2 = obj2[field]
+  sort(field, type = "asc") {
+    const header = this.header.find((h) => h.id === field);
+    if (header && header.sortable) {
+      const { sortType } = header;
+      this.data = [...this.data].sort((a, b) => {
         switch (type) {
-          case 'string':
-            return this.compareString(v1, v2)
-          case 'number':
-            return this.compareNumber(v1, v1)
+          case "desc":
+            return this.compare(b[field], a[field], sortType);
+          case "asc":
           default:
-            return 0
+            return this.compare(a[field], b[field], sortType);
         }
-      })
+      });
+      if (this.subElements.body) {
+        this.subElements.body.innerHTML = this.bodyData;
+      }
     }
-
   }
 
-
+  compare(first, second, type = "number") {
+    switch (type) {
+      case "number":
+        return first - second;
+      case "string":
+        return first.localeCompare(second, ["ru", "en"], {
+          caseFirst: "upper",
+        });
+    }
+    return 0;
+  }
 }
