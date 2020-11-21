@@ -78,7 +78,7 @@ class Tooltip {
 
   render(text) {
     this.element = document.createElement('div');
-    this.element.innerText = text;
+    this.element.innerHTML = text;
     this.element.className = NAME;
 
     document.body.append(this.element);
