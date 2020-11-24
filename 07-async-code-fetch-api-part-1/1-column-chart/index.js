@@ -16,7 +16,7 @@ export default class ColumnChart {
   subElements = {};
 
   constructor({
-    url = 'api/dashboard/orders',
+    url,
     data = [],
     range = {
       from: new Date('2020-04-06'),
@@ -39,7 +39,7 @@ export default class ColumnChart {
   }
 
   renderLink() {
-    return !!this.link ?
+    return this.link ?
       `<a data-element="link" class="column-chart__link" href="${this.link}">View all</a>` :
       "";
   }
@@ -63,8 +63,8 @@ export default class ColumnChart {
     `;
   }
 
-  renderData() {
-    if (!this.data || !this.data.length) return "";
+  renderData(data) {
+    if (!data || !data.length) return "";
 
     const maxValue = Math.max(...this.data);
     const scale = this.chartHeight / maxValue;
@@ -85,7 +85,7 @@ export default class ColumnChart {
 
   get template() {
     return `
-    <div 
+    <div
     class="column-chart"
     style="--chart-height: ${this.chartHeight}"
   >
@@ -95,7 +95,7 @@ export default class ColumnChart {
         ${this.value}
       </div>
       <div data-element="body" class="column-chart__chart">
-        ${this.renderData()}
+        ${this.renderData(this.data)}
       </div>
     </div>
   </div>
@@ -115,7 +115,7 @@ export default class ColumnChart {
 
   updateData(data) {
     this.data = data;
-    this.subElements.body.innerHTML = this.renderData();
+    this.subElements.body.innerHTML = this.renderData(this.data);
   }
 
   toggleLoad() {
