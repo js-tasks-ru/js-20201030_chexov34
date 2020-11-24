@@ -51,7 +51,7 @@ export default class SortableTable {
       if (this.isSortLocal) {
         this.sort(id, this.sortConfig.type);
       } else {
-        this.sortOnServer();
+        this.sortOnServer(this.sortConfig.id, this.sortConfig.type);
       }
     }
   }
@@ -64,7 +64,7 @@ export default class SortableTable {
       this.end = this.start + this.limit;
       this.load = true;
       this.toggleLoad();
-      await this.sortOnServer();
+      await this.sortOnServer(this.sortConfig.id, this.sortConfig.type);
       this.load = false;
       this.toggleLoad();
     }
@@ -84,7 +84,7 @@ export default class SortableTable {
     this.end = this.start + this.limit;
     this.url = new URL(url, BACKEND_URL);
     this.isSortLocal = isSortLocal;
-    this.render();
+    this.renderTemplate();
     this.initEventListeners();
   }
 
@@ -168,9 +168,13 @@ export default class SortableTable {
     `;
   }
 
-  async render() {
+  async renderTemplate() {
     this.element = createElementFromString(this.template);
     this.subElements = this.getSubElements(this.element);
+    await this.render();
+  }
+
+  async render() {
     await this.loadData(this.sortConfig);
   }
 
@@ -180,8 +184,11 @@ export default class SortableTable {
     }
   }
 
-  async sortOnServer() {
-    await this.loadData(this.sortConfig);
+  async sortOnServer(field, type) {
+    await this.loadData({
+      id: field,
+      order: type
+    });
   }
 
   async loadData({
@@ -205,7 +212,7 @@ export default class SortableTable {
   }
 
   initEventListeners() {
-    this.subElements.header.addEventListener('pointerdown', this.onSortClick);
+    document.addEventListener('pointerdown', this.onSortClick);
     document.addEventListener('scroll', this.onScroll);
   }
 
@@ -221,6 +228,8 @@ export default class SortableTable {
 
   destroy() {
     this.remove();
+    document.removeEventListener('pointerdown', this.onSortClick);
+    document.removeEventListener('scroll', this.onScroll);
   }
 
 
