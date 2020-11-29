@@ -1,37 +1,37 @@
 function createElementFromString(string) {
-    const div = document.createElement("div");
-    div.innerHTML = string.trim();
-    return div.firstElementChild;
+  const div = document.createElement("div");
+  div.innerHTML = string.trim();
+  return div.firstElementChild;
 }
 
 export default class RangePicker {
-    element;
-    subElements = {};
-    static RANGEPICKER_OPEN = 'rangepicker_open';
+  element;
+  subElements = {};
+  static RANGEPICKER_OPEN = 'rangepicker_open';
 
-    constructor({
-        from = new Date(),
-        to = new Date()
-    }) {
-        this.from = from;
-        this.to = to;
-        this.render();
-    }
+  constructor({
+    from = new Date(),
+    to = new Date()
+  }) {
+    this.from = from;
+    this.to = to;
+    this.render();
+  }
 
-    render() {
-        this.element = createElementFromString(this.tmaplte);
-        this.subElements = this.getSubElements(this.element);
-        this.initEventListeners();
-    }
+  render() {
+    this.element = createElementFromString(this.tmaplte);
+    this.subElements = this.getSubElements(this.element);
+    this.initEventListeners();
+  }
 
-    static formatDate(date) {
-        return new Intl.DateTimeFormat().format(date);
-    }
+  static formatDate(date) {
+    return new Intl.DateTimeFormat().format(date);
+  }
 
-    get tmaplte() {
-        const from = RangePicker.formatDate(this.from);
-        const to = RangePicker.formatDate(this.to);
-        return `
+  get tmaplte() {
+    const from = RangePicker.formatDate(this.from);
+    const to = RangePicker.formatDate(this.to);
+    return `
         <div class="rangepicker">
             <div class="rangepicker__input" data-element="input">
                 <span data-element="from">${from}</span> -
@@ -45,14 +45,13 @@ export default class RangePicker {
             ${this.templateCalendar}
         </div>
         `
-    }
+  }
 
-    get templateCalendar() {
-        const monthEn = this.from.toLocaleString('en', {       
-            month: 'long'       
-        });
-    ;
-        return `
+  get templateCalendar() {
+    const monthEn = this.from.toLocaleString('en', {
+      month: 'long'
+    });;
+    return `
         <div class="rangepicker__calendar">
         <div class="rangepicker__month-indicator">
           <time datetime="${monthEn}">${monthEn}</time>
@@ -102,40 +101,40 @@ export default class RangePicker {
         </div>
       </div>
         `
+  }
+
+  tooglePicker() {
+    if (!this.element) return;
+    if (this.element.classList.contains(RANGEPICKER_OPEN)) {
+      this.element.classList.remove(RANGEPICKER_OPEN);
+    } else {
+      this.element.classList.add(RANGEPICKER_OPEN);
     }
+  }
 
-    tooglePicker() {
-        if (!this.element) return;
-        if (this.element.classList.contains(RANGEPICKER_OPEN)) {
-            this.element.classList.remove(RANGEPICKER_OPEN);
-        } else {
-            this.element.classList.add(RANGEPICKER_OPEN);
-        }
+  getSubElements(element) {
+    const elements = element.querySelectorAll("[data-element]");
+
+    return [...elements].reduce((accum, subElement) => {
+      accum[subElement.dataset.element] = subElement;
+
+      return accum;
+    }, {});
+  }
+
+  initEventListeners() {
+
+  }
+
+  destroy() {
+    this.remove();
+  }
+
+  remove() {
+    if (this.element) {
+      this.element.remove();
     }
-
-    getSubElements(element) {
-        const elements = element.querySelectorAll("[data-element]");
-    
-        return [...elements].reduce((accum, subElement) => {
-          accum[subElement.dataset.element] = subElement;
-    
-          return accum;
-        }, {});
-      }
-
-    initEventListeners() {
-
-    }
-
-    destroy() {
-        this.remove();
-    }
-
-    remove() {
-        if(this.element) {
-            this.element.remove();
-        }
-        this.element = null;
-    }
+    this.element = null;
+  }
 
 }
