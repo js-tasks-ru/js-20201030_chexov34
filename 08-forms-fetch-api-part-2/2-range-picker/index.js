@@ -121,7 +121,7 @@ export default class RangePicker {
   }
 
   static formatDate(date) {
-    return new Intl.DateTimeFormat().format(date);
+    return date.toLocaleString('ru', {dateStyle: 'short'});
   }
 
   get template() {
