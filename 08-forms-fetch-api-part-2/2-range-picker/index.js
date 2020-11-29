@@ -107,8 +107,8 @@ export default class RangePicker {
     from,
     to
   }) {
-    this.from = new Date(from.setMonth(from.getMonth()));
-    this.to = new Date(to.setMonth(to.getMonth()));
+    this.from = new Date(from);
+    this.to = new Date(to);
     this.dateFrom = new Date(this.from);
     this.render();
   }
