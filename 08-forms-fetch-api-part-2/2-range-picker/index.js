@@ -9,8 +9,7 @@ export default class RangePicker {
   subElements = {};
   leftCalendar = null;
   rightCalendar = null;
-  static RANGEPICKER_OPEN = 'rangepicker_open';
-
+  RANGEPICKER_OPEN = 'rangepicker_open';
 
   onClickRangePicker = event => {
     event.preventDefault();
@@ -122,7 +121,9 @@ export default class RangePicker {
   }
 
   static formatDate(date) {
-    return date.toLocaleString('ru', {dateStyle: 'short'});
+    return date.toLocaleString('ru', {
+      dateStyle: 'short'
+    });
   }
 
   get template() {
@@ -142,6 +143,21 @@ export default class RangePicker {
 
   static daysInMonth(month, year) {
     return new Date(year, month + 1, 0).getDate();
+  }
+
+  get daysOfWeek() {
+    return Object.values(Object.fromEntries(new Array(7)
+      .fill(1)
+      .map((item, index) => {
+        const d = new Date(new Date().setDate(index));
+        let n = d.getDay();
+        if (n === 0) n = 7;
+        return [
+          n, d.toLocaleString('ru', {
+            weekday: 'short'
+          })
+        ];
+      }).sort(([a, ], [b, ]) => a - b)));
   }
 
   getTemplateCalendar(numberMonth, year, {
@@ -176,12 +192,15 @@ export default class RangePicker {
       </button>`;
     }).join('');
 
+
     return `
         <div class="rangepicker__calendar">
         <div class="rangepicker__month-indicator">
           <time datetime="${monthEn}">${monthEn}</time>
         </div>
-        <div class="rangepicker__day-of-week"><div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div></div>
+        <div class="rangepicker__day-of-week">
+          ${this.daysOfWeek.map(dayWeek => `<div>${dayWeek}</div>`).join('')}
+        </div>
         <div class="rangepicker__date-grid">
           ${dateGrid}
         </div>
@@ -191,15 +210,15 @@ export default class RangePicker {
 
   togglePicker() {
     if (!this.element) return;
-    if (this.element.classList.contains(RangePicker.RANGEPICKER_OPEN)) {
-      this.element.classList.remove(RangePicker.RANGEPICKER_OPEN);
+    if (this.element.classList.contains(this.RANGEPICKER_OPEN)) {
+      this.element.classList.remove(this.RANGEPICKER_OPEN);
     } else {
-      this.element.classList.add(RangePicker.RANGEPICKER_OPEN);
+      this.element.classList.add(this.RANGEPICKER_OPEN);
     }
   }
 
   isOpen() {
-    return this.element.classList.contains(RangePicker.RANGEPICKER_OPEN);
+    return this.element.classList.contains(this.RANGEPICKER_OPEN);
   }
 
   getSubElements(element) {
