@@ -88,8 +88,6 @@ export default class RangePicker {
       this.from = new Date(value);
     } else if (!this.to) {
       this.to = new Date(value);
-      this.subElements.from.innerHTML = RangePicker.formatDate(this.from);
-      this.subElements.to.innerHTML = RangePicker.formatDate(this.to);
     }
 
     if (this.from && this.to && this.from.getTime() > this.to.getTime()) {
@@ -97,7 +95,10 @@ export default class RangePicker {
     }
 
     if (this.from && this.to) {
+      this.subElements.from.innerHTML = RangePicker.formatDate(this.from);
+      this.subElements.to.innerHTML = RangePicker.formatDate(this.to);
       this.renderCalendar();
+      this.dispatchEvent();
     }
 
   }
@@ -225,6 +226,16 @@ export default class RangePicker {
   destroy() {
     this.remove();
     this.removeEventListeners();
+  }
+
+  dispatchEvent() {
+    this.element.dispatchEvent(new CustomEvent('date-select', {
+      bubbles: true,
+      detail: {
+        from: this.from,
+        to: this.to
+      }
+    }));
   }
 
   remove() {
