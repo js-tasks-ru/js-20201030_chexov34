@@ -49,7 +49,7 @@ export default class ProductForm {
           },
           body: formData
         });
-        this.sortableListElement.element.append(createElementFromString(
+        this.sortableListElement.addImageToHtml(createElementFromString(
           this.renderImageLi({
             source: file.name,
             url: result.data.link

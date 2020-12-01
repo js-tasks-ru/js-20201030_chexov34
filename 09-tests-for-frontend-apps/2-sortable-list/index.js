@@ -141,6 +141,10 @@ export default class SortableList {
       </ul>
     `;
   }
+  
+  addImageToHtml(image) {
+    this.element.append(image);
+  }
 
   initEventListeners() {
     this.element.addEventListener('pointerdown', this.onMouseDown);
