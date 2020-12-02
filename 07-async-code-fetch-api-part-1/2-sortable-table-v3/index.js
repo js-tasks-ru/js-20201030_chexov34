@@ -146,6 +146,11 @@ export default class SortableTable {
       .join("");
   }
 
+  setData(data) {
+    this.data = data;
+    this.subElements.body.innerHTML = this.bodyData;
+  }
+
   get template() {
     return `
     <div data-element="productsContainer" class="products-list__container">
