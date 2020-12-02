@@ -14,7 +14,7 @@ function createElementFromString(string) {
 export default class ProductForm {
   element;
   subElements = {};
-  data = {
+  defaultData = {
     title: '',
     description: '',
     quantity: 1,
@@ -98,10 +98,13 @@ export default class ProductForm {
   }
 
   async render() {
-    this.category = await this.fetchCategory();
-    if (this.productId) {
-      this.data = await this.fetchData(this.productId);
-    }
+    const [category, productData] = 
+      await Promise.all([
+        this.fetchCategory(), 
+        this.productId ? this.fetchData(this.productId) : [this.defaultData]
+      ]);
+    this.category = category;
+    this.data = productData;
     this.element = createElementFromString(this.template);
     this.subElements = this.getSubElements(this.element);
 
@@ -111,7 +114,7 @@ export default class ProductForm {
   }
 
   formatCategory(categories) {
-    const currentCategory = this.data?.subcategory;
+    const currentCategory = this.data.subcategory;
 
     return categories.reduce((prev, {
       title,
